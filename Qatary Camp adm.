@@ -1,0 +1,448 @@
+
+// ==========================================
+// 1. نماذج البيانات (Data Structure)
+// ==========================================
+
+enum Gender { male, female }
+
+class FamilyMember {
+  final String name;
+  final int age;
+  final String relation; // رب الأسرة، زوجة، ابن، ابنة
+  final Gender gender;
+  final String? idNumber; // رقم الهوية
+  final String? phoneNumber; // رقم الجوال
+  final String bloodType;
+  final List<String> chronicDiseases;
+
+  FamilyMember({
+    required this.name,
+    required this.age,
+    required this.relation,
+    required this.gender,
+    this.idNumber,
+    this.phoneNumber,
+    required this.bloodType,
+    this.chronicDiseases = const [],
+  });
+}
+
+class Family {
+  final String id;
+  final String headName;
+  final String address;
+  final String headPhone;
+  final List<FamilyMember> members;
+
+  Family({
+    required this.id,
+    required this.headName,
+    required this.address,
+    required this.headPhone,
+    required this.members,
+  });
+
+  // استخراج الزوجة
+  FamilyMember? get wife {
+    try {
+      return members.firstWhere((m) => m.relation == 'زوجة');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // حساب عدد الذكور والإناث (للأبناء فقط)
+  int get maleKidsCount => members.where((m) => m.gender == Gender.male && m.relation != 'رب الأسرة').length;
+  int get femaleKidsCount => members.where((m) => m.gender == Gender.female && m.relation != 'زوجة').length;
+}
+
+// ==========================================
+// 2. بيانات تجريبية (للتجربة الفورية)
+// ==========================================
+List<Family> dummyFamilies = [
+  Family(
+    id: '101',
+    headName: 'خالد عبد العزيز',
+    address: 'حي الزهور، شارع 15، منزل 4',
+    headPhone: '0501234567',
+    members: [
+      FamilyMember(name: 'خالد عبد العزيز', age: 45, relation: 'رب الأسرة', gender: Gender.male, bloodType: 'O+', idNumber: '100100100'),
+      FamilyMember(name: 'منى أحمد', age: 38, relation: 'زوجة', gender: Gender.female, bloodType: 'A+', idNumber: '100200200', phoneNumber: '0509876543'),
+      FamilyMember(name: 'فهد خالد', age: 16, relation: 'ابن', gender: Gender.male, bloodType: 'O+'),
+      FamilyMember(name: 'سارة خالد', age: 14, relation: 'ابنة', gender: Gender.female, bloodType: 'B-', chronicDiseases: ['حساسية']),
+      FamilyMember(name: 'عمر خالد', age: 8, relation: 'ابن', gender: Gender.male, bloodType: 'A+'),
+    ],
+  ),
+  Family(
+    id: '102',
+    headName: 'سالم الدوسري',
+    address: 'حي النسيم، عمارة 3، شقة 10',
+    headPhone: '0555555555',
+    members: [
+      FamilyMember(name: 'سالم الدوسري', age: 55, relation: 'رب الأسرة', gender: Gender.male, bloodType: 'AB+', chronicDiseases: ['سكري', 'ضغط']),
+      FamilyMember(name: 'نورة السعيد', age: 50, relation: 'زوجة', gender: Gender.female, bloodType: 'O-', idNumber: '105105105'),
+      FamilyMember(name: 'ريم سالم', age: 20, relation: 'ابنة', gender: Gender.female, bloodType: 'A+'),
+    ],
+  ),
+];
+
+// ==========================================
+// 3. التطبيق الرئيسي (Main App)
+// ==========================================
+
+void main() {
+  runApp(const NeighborhoodApp());
+}
+
+class NeighborhoodApp extends StatelessWidget {
+  const NeighborhoodApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'سجل السكان',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+        useMaterial3: true,
+      ),
+      builder: (context, child) {
+        return Directionality(textDirection: TextDirection.rtl, child: child!);
+      },
+      home: const FamilyListScreen(),
+    );
+  }
+}
+
+// ==========================================
+// 4. الشاشة الرئيسية (القائمة)
+// ==========================================
+
+class FamilyListScreen extends StatelessWidget {
+  const FamilyListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.location_city, size: 28),
+            SizedBox(width: 10),
+            Text('بيانات سكان الحي'),
+          ],
+        ),
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+        ],
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: dummyFamilies.length,
+        itemBuilder: (context, index) {
+          return FamilyCard(family: dummyFamilies[index]);
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        backgroundColor: Colors.indigo,
+        icon: const Icon(Icons.add_home, color: Colors.white),
+        label: const Text('إضافة أسرة', style: TextStyle(color: Colors.white)),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 5. الويدجت (التصميم)
+// ==========================================
+
+class FamilyCard extends StatelessWidget {
+  final Family family;
+
+  const FamilyCard({super.key, required this.family});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => FamilyDetailScreen(family: family)));
+            },
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.home, color: Colors.indigo, size: 30),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          family.headName,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Expanded(child: Text(family.address, style: const TextStyle(fontSize: 13, color: Colors.grey), overflow: TextOverflow.ellipsis)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _genderCountBadge(Icons.boy, family.maleKidsCount, Colors.blue),
+                            const SizedBox(width: 8),
+                            _genderCountBadge(Icons.girl, family.femaleKidsCount, Colors.pink),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () => _showWifeDialog(context, family.wife),
+                    icon: const Icon(Icons.person_2, size: 18, color: Colors.purple),
+                    label: const Text('بيانات الزوجة', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                Container(width: 1, height: 25, color: Colors.grey.shade300),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () => _showKidsDialog(context, family.members),
+                    icon: const Icon(Icons.child_care, size: 18, color: Colors.orange),
+                    label: const Text('قائمة الأبناء', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _genderCountBadge(IconData icon, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 4),
+          Text('$count', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  void _showWifeDialog(BuildContext context, FamilyMember? wife) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(children: [Icon(Icons.person_2, color: Colors.purple), SizedBox(width: 10), Text('الزوجة')]),
+        content: wife == null
+            ? const Text('لم يتم تسجيل بيانات الزوجة.')
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _detailRow('الاسم', wife.name),
+                  _detailRow('رقم الهوية', wife.idNumber ?? 'غير متوفر'),
+                  _detailRow('رقم الجوال', wife.phoneNumber ?? 'غير متوفر'),
+                  const Divider(),
+                  _detailRow('فصيلة الدم', wife.bloodType),
+                ],
+              ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+        ],
+      ),
+    );
+  }
+
+  void _showKidsDialog(BuildContext context, List<FamilyMember> members) {
+    final kids = members.where((m) => m.relation != 'رب الأسرة' && m.relation != 'زوجة').toList();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(children: [Icon(Icons.family_restroom, color: Colors.orange), SizedBox(width: 10), Text('الأبناء')]),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: kids.isEmpty
+              ? const Text('لا يوجد أبناء مسجلين.')
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: kids.length,
+                  itemBuilder: (ctx, index) {
+                    final kid = kids[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: kid.gender == Gender.male ? Colors.blue.shade50 : Colors.pink.shade50,
+                        child: Icon(
+                          kid.gender == Gender.male ? Icons.boy : Icons.girl,
+                          color: kid.gender == Gender.male ? Colors.blue : Colors.pink,
+                        ),
+                      ),
+                      title: Text(kid.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('${kid.age} سنة'),
+                      trailing: kid.chronicDiseases.isNotEmpty
+                          ? const Icon(Icons.medical_services, color: Colors.red, size: 20)
+                          : null,
+                    );
+                  },
+                ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق'))],
+      ),
+    );
+  }
+
+  Widget _detailRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 6. شاشة التفاصيل الكاملة
+// ==========================================
+
+class FamilyDetailScreen extends StatelessWidget {
+  final Family family;
+  const FamilyDetailScreen({super.key, required this.family});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(family.headName), backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              child: Row(children: [
+                 const Icon(Icons.location_on, color: Colors.indigo),
+                 const SizedBox(width: 10),
+                 Expanded(child: Text(family.address, style: const TextStyle(fontSize: 16))),
+              ]),
+            ),
+            const SizedBox(height: 20),
+            const Text('السجل الصحي والبيانات التفصيلية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.indigo)),
+            const SizedBox(height: 10),
+            
+            ...family.members.map((member) {
+              bool isSick = member.chronicDiseases.isNotEmpty;
+              return Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 10),
+                color: isSick ? Colors.red.shade50 : Colors.white,
+                child: ExpansionTile(
+                  leading: Icon(
+                    isSick ? Icons.sick : Icons.person,
+                    color: isSick ? Colors.red : Colors.grey,
+                  ),
+                  title: Text(member.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('${member.relation} • ${member.age} سنة'),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildRow('رقم الهوية', member.idNumber ?? '-'),
+                          _buildRow('رقم الجوال', member.phoneNumber ?? '-'),
+                          const Divider(),
+                          _buildRow('فصيلة الدم', member.bloodType, isBold: true),
+                          const SizedBox(height: 8),
+                          if (isSick)
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.warning, color: Colors.red, size: 20),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: Text('أمراض مزمنة: ${member.chronicDiseases.join("، ")}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+                                ],
+                              ),
+                            )
+                          else
+                            const Row(children: [Icon(Icons.check_circle, color: Colors.green, size: 20), SizedBox(width: 8), Text('الحالة الصحية سليمة', style: TextStyle(color: Colors.green))]),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.black54)),
+          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, fontSize: 15)),
+        ],
+      ),
+    );
+  }
+}
+```
